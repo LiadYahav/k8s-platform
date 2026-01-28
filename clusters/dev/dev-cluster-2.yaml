@@ -1,0 +1,13 @@
+apiVersion: cluster.openshift.io/v1
+kind: OpenShiftCluster
+metadata:
+  name: dev-cluster-2
+spec:
+  topology:
+    class: eu-west-1
+    version: v4.14
+    workers:
+      replicas: 5
+  addons:
+    - keda
+    - logging-operator

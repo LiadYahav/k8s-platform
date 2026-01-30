@@ -1,0 +1,78 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: harel
+  namespace: clusters
+  annotations:
+    hypershift.openshift.io/addons: "ako, keda, logging-operator"
+    hypershift.openshift.io/control-plane-operator-image: ""
+spec:
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.14-x86_64
+  pullSecret:
+    name: pull-secret
+  sshKey:
+    name: ssh-key
+  networking:
+    clusterNetwork:
+      - cidr: 10.132.0.0/14
+    serviceNetwork:
+      - cidr: 172.31.0.0/16
+    networkType: OVNKubernetes
+  platform:
+    type: AWS
+    aws:
+      region: us-east-1
+      controlPlaneOperatorCreds:
+        name: cpo-creds
+      endpointAccess: Public
+  infraID: harel
+  infrastructureRef:
+    apiVersion: hypershift.openshift.io/v1beta1
+    kind: AWSCluster
+    name: harel
+    namespace: clusters
+  controllerAvailabilityPolicy: HighlyAvailable
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: 8Gi
+        type: PersistentVolume
+    managementType: Managed
+  fips: false
+  issuerURL: https://kubernetes-issuer.example.com
+---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: harel-workers
+  namespace: clusters
+spec:
+  clusterName: harel
+  replicas: 3
+  management:
+    autoRepair: true
+    upgradeType: Replace
+  platform:
+    type: AWS
+    aws:
+      instanceType: m5.xlarge
+      rootVolume:
+        size: 120
+        type: gp3
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.14-x86_64

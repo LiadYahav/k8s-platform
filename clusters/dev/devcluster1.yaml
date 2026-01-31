@@ -3,7 +3,7 @@ kind: HostedCluster
 metadata:
   annotations:
     hypershift.openshift.io/addons: cilium, cert-manager, Keda, Logging Operator,
-      AKO, Tetragon, tetragon, Cilium
+      AKO, Tetragon, tetragon, Cilium, ako
     hypershift.openshift.io/control-plane-operator-image: ''
   name: devcluster1
   namespace: clusters
@@ -77,6 +77,9 @@ spec:
   release:
     image: quay.io/openshift-release-dev/ocp-release:4.14.0-x86_64
   replicas: 3
+---
+null
+...
 ---
 null
 ...

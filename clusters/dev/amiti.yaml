@@ -2,7 +2,7 @@ apiVersion: hypershift.openshift.io/v1beta1
 kind: HostedCluster
 metadata:
   annotations:
-    hypershift.openshift.io/addons: ako, keda, logging-operator
+    hypershift.openshift.io/addons: ako, keda, logging-operator, cert-manager
     hypershift.openshift.io/control-plane-operator-image: ''
   name: amiti
   namespace: clusters
@@ -76,6 +76,9 @@ spec:
   release:
     image: quay.io/openshift-release-dev/ocp-release:4.14-x86_64
   replicas: 3
+---
+null
+...
 ---
 null
 ...

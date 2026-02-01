@@ -1,0 +1,92 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: ada
+  namespace: clusters
+  labels:
+    hypershift.openshift.io/managed-by: acm
+    cluster.open-cluster-management.io/clusterset: default
+  annotations:
+    hypershift.openshift.io/addons: "cert-manager, tetragon, cilium"
+    hypershift.openshift.io/control-plane-operator-image: ""
+    cluster.open-cluster-management.io/datacenter: dc-nyc-2
+spec:
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.15-x86_64
+  pullSecret:
+    name: pull-secret
+  sshKey:
+    name: ssh-key
+  networking:
+    clusterNetwork:
+      - cidr: 10.132.0.0/14
+    serviceNetwork:
+      - cidr: 172.31.0.0/16
+    networkType: OVNKubernetes
+  platform:
+    type: Agent
+    agent:
+      agentNamespace: ada-agents
+  infraID: ada
+  infrastructureRef:
+    apiVersion: agent-install.openshift.io/v1beta1
+    kind: AgentCluster
+    name: ada
+    namespace: clusters
+  controllerAvailabilityPolicy: HighlyAvailable
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: 8Gi
+          storageClassName: thin-csi
+        type: PersistentVolume
+    managementType: Managed
+  fips: false
+---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: ada-workers
+  namespace: clusters
+  labels:
+    hypershift.openshift.io/managed-by: acm
+spec:
+  clusterName: ada
+  replicas: 3
+  management:
+    autoRepair: true
+    upgradeType: Replace
+  platform:
+    type: Agent
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          cluster.open-cluster-management.io/clusterset: default
+          agent-install.openshift.io/datacenter: dc-nyc-2
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.15-x86_64
+  nodeDrainTimeout: 60s
+---
+apiVersion: agent-install.openshift.io/v1beta1
+kind: AgentCluster
+metadata:
+  name: ada
+  namespace: clusters
+spec:
+  clusterName: ada
+  pullSecretRef:
+    name: pull-secret
